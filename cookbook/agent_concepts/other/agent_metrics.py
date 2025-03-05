@@ -35,3 +35,4 @@ if agent.run_response is not None:
     # Print the metrics
     print("---" * 5, "Aggregated Metrics", "---" * 5)
     pprint(agent.run_response.metrics)
+
