@@ -23,8 +23,8 @@ Example prompts to try:
 from datetime import datetime
 from textwrap import dedent
 
-from agno.agent import Agent
-from agno.models.openai import OpenAIChat
+from agno.agent.agent import Agent
+from agno.models.openai.chat import OpenAIChat
 from agno.tools.exa import ExaTools
 
 # Initialize the academic research agent with scholarly capabilities

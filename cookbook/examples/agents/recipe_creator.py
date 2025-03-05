@@ -17,8 +17,8 @@ Run: `pip install openai exa_py agno` to install the dependencies
 
 from textwrap import dedent
 
-from agno.agent import Agent
-from agno.models.openai import OpenAIChat
+from agno.agent.agent import Agent
+from agno.models.openai.chat import OpenAIChat
 from agno.tools.exa import ExaTools
 
 recipe_agent = Agent(
