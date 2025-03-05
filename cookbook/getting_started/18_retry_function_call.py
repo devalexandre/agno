@@ -1,8 +1,9 @@
 from typing import Iterator
 
-from agno.agent import Agent
+from agno.agent.agent import Agent
 from agno.exceptions import RetryAgentRun
-from agno.tools import FunctionCall, tool
+from agno.tools.function import FunctionCall
+from agno.tools.decorator import tool
 
 num_calls = 0
 

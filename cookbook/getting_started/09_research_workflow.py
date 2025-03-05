@@ -24,14 +24,15 @@ import json
 from textwrap import dedent
 from typing import Dict, Iterator, Optional
 
-from agno.agent import Agent
-from agno.models.openai import OpenAIChat
+from agno.agent.agent import Agent
+from agno.models.openai.chat import OpenAIChat
 from agno.storage.workflow.sqlite import SqliteWorkflowStorage
 from agno.tools.duckduckgo import DuckDuckGoTools
 from agno.tools.newspaper4k import Newspaper4kTools
 from agno.utils.log import logger
 from agno.utils.pprint import pprint_run_response
-from agno.workflow import RunEvent, RunResponse, Workflow
+from agno.workflow.workflow import  Workflow
+from agno.run.response import RunEvent, RunResponse
 from pydantic import BaseModel, Field
 
 
@@ -60,7 +61,7 @@ class ScrapedArticle(BaseModel):
 
 
 class ResearchReportGenerator(Workflow):
-    description: str = dedent("""\
+    description = dedent("""\
     Generate comprehensive research reports that combine academic rigor
     with engaging storytelling. This workflow orchestrates multiple AI agents to search, analyze,
     and synthesize information from diverse sources into well-structured reports.
@@ -374,7 +375,8 @@ class ResearchReportGenerator(Workflow):
         # Run the writer and yield the response
         yield from self.writer.run(json.dumps(writer_input, indent=4), stream=True)
         # Save the research report in the cache
-        self.add_report_to_cache(topic, self.writer.run_response.content)
+        if self.writer.run_response is not None and self.writer.run_response.content is not None:
+            self.add_report_to_cache(topic, self.writer.run_response.content)
 
 
 # Run the workflow if the script is executed directly

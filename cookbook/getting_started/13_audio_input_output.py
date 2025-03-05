@@ -16,9 +16,9 @@ Run `pip install openai requests agno` to install dependencies.
 from textwrap import dedent
 
 import requests
-from agno.agent import Agent
+from agno.agent.agent import Agent
 from agno.media import Audio
-from agno.models.openai import OpenAIChat
+from agno.models.openai.chat import OpenAIChat
 from agno.utils.audio import write_audio_to_file
 
 # Create an AI Voice Interaction Agent
@@ -57,7 +57,7 @@ agent.run(
 )
 
 # Save the audio response if available
-if agent.run_response.response_audio is not None:
+if agent.run_response is not None and agent.run_response.response_audio is not None:
     write_audio_to_file(
         audio=agent.run_response.response_audio.content, filename="tmp/response.wav"
     )

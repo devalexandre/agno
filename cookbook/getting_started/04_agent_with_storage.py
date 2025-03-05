@@ -19,13 +19,14 @@ from textwrap import dedent
 from typing import List, Optional
 
 import typer
-from agno.agent import Agent
+from agno.agent.agent import Agent
 from agno.embedder.openai import OpenAIEmbedder
 from agno.knowledge.pdf_url import PDFUrlKnowledgeBase
-from agno.models.openai import OpenAIChat
+from agno.models.openai.chat import OpenAIChat
 from agno.storage.agent.sqlite import SqliteAgentStorage
 from agno.tools.duckduckgo import DuckDuckGoTools
-from agno.vectordb.lancedb import LanceDb, SearchType
+from agno.vectordb.lancedb.lance_db import LanceDb
+from agno.vectordb.search import SearchType
 from rich import print
 
 agent_knowledge = PDFUrlKnowledgeBase(

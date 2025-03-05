@@ -15,8 +15,8 @@ Run `pip install openai agno` to install dependencies.
 
 from textwrap import dedent
 
-from agno.agent import Agent
-from agno.models.openai import OpenAIChat
+from agno.agent.agent import Agent
+from agno.models.openai.chat import OpenAIChat
 
 # Create our News Reporter with a fun personality
 agent = Agent(

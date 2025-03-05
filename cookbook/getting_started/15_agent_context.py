@@ -10,8 +10,8 @@ import json
 from textwrap import dedent
 
 import httpx
-from agno.agent import Agent
-from agno.models.openai import OpenAIChat
+from agno.agent.agent import Agent
+from agno.models.openai.chat import OpenAIChat
 
 
 def get_top_hackernews_stories(num_stories: int = 5) -> str:

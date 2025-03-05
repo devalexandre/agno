@@ -15,8 +15,8 @@ import json
 from typing import Optional
 
 import typer
-from agno.agent import Agent
-from agno.models.openai import OpenAIChat
+from agno.agent.agent import Agent
+from agno.models.openai.chat import OpenAIChat
 from agno.storage.agent.sqlite import SqliteAgentStorage
 from rich import print
 from rich.console import Console

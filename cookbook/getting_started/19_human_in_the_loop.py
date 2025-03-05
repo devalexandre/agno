@@ -20,9 +20,10 @@ from textwrap import dedent
 from typing import Iterator
 
 import httpx
-from agno.agent import Agent
+from agno.agent.agent import Agent
 from agno.exceptions import StopAgentRun
-from agno.tools import FunctionCall, tool
+from agno.tools.decorator import  tool
+from agno.tools.function import FunctionCall
 from rich.console import Console
 from rich.pretty import pprint
 from rich.prompt import Prompt
@@ -112,4 +113,5 @@ agent.print_response(
 )
 
 # View all messages
-pprint(agent.run_response.messages)
+if agent.run_response is not None:
+    pprint(agent.run_response.messages)

@@ -17,8 +17,8 @@ Run `pip install openai agno` to install dependencies.
 
 from textwrap import dedent
 
-from agno.agent import Agent
-from agno.models.openai import OpenAIChat
+from agno.agent.agent import Agent
+from agno.models.openai.chat import OpenAIChat
 
 
 # Define a tool that increments our counter and returns the new value
