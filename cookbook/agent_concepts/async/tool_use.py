@@ -1,7 +1,7 @@
 import asyncio
 
-from agno.agent import Agent
-from agno.models.openai import OpenAIChat
+from agno.agent.agent import Agent
+from agno.models.openai.chat import OpenAIChat
 from agno.tools.duckduckgo import DuckDuckGoTools
 
 agent = Agent(

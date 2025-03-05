@@ -1,7 +1,8 @@
-from agno.agent import Agent
+from agno.agent.agent import Agent
 from agno.knowledge.pdf_url import PDFUrlKnowledgeBase
-from agno.models.openai import OpenAIChat
-from agno.vectordb.pgvector import PgVector, SearchType
+from agno.models.openai.chat import OpenAIChat
+from agno.vectordb.pgvector.pgvector import PgVector
+from agno.vectordb.search import SearchType
 
 db_url = "postgresql+psycopg://ai:ai@localhost:5532/ai"
 knowledge_base = PDFUrlKnowledgeBase(

@@ -1,5 +1,5 @@
-from agno.agent import Agent
-from agno.models.openai import OpenAIChat
+from agno.agent.agent import Agent
+from agno.models.openai.chat import OpenAIChat
 from agno.utils.audio import write_audio_to_file
 
 agent = Agent(
@@ -13,13 +13,14 @@ agent = Agent(
 )
 
 agent.run("Is a golden retriever a good family dog?")
-if agent.run_response.response_audio is not None:
-    write_audio_to_file(
-        audio=agent.run_response.response_audio.content, filename="tmp/answer_1.wav"
-    )
+if  agent.run_response is not None:
+    if agent.run_response.response_audio is not None:
+        write_audio_to_file(
+            audio=agent.run_response.response_audio.content, filename="tmp/answer_1.wav"
+        )
 
-agent.run("Why do you say they are loyal?")
-if agent.run_response.response_audio is not None:
-    write_audio_to_file(
-        audio=agent.run_response.response_audio.content, filename="tmp/answer_2.wav"
-    )
+    agent.run("Why do you say they are loyal?")
+    if agent.run_response.response_audio is not None:
+        write_audio_to_file(
+            audio=agent.run_response.response_audio.content, filename="tmp/answer_2.wav"
+        )

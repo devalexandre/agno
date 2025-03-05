@@ -4,11 +4,12 @@
 3. Run: `python cookbook/rag/02_agentic_rag_pgvector.py` to run the agent
 """
 
-from agno.agent import Agent
+from agno.agent.agent import Agent
 from agno.embedder.openai import OpenAIEmbedder
 from agno.knowledge.pdf_url import PDFUrlKnowledgeBase
-from agno.models.openai import OpenAIChat
-from agno.vectordb.pgvector import PgVector, SearchType
+from agno.models.openai.chat import OpenAIChat
+from agno.vectordb.pgvector.pgvector import PgVector
+from agno.vectordb.search import SearchType
 
 db_url = "postgresql+psycopg://ai:ai@localhost:5532/ai"
 # Create a knowledge base of PDFs from URLs

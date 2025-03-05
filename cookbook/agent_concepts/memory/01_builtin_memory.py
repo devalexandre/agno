@@ -1,5 +1,5 @@
-from agno.agent import Agent
-from agno.models.openai import OpenAIChat
+from agno.agent.agent import Agent
+from agno.models.openai.chat import OpenAIChat
 from rich.pretty import pprint
 
 agent = Agent(
@@ -14,9 +14,11 @@ agent = Agent(
 # -*- Create a run
 agent.print_response("Share a 2 sentence horror story", stream=True)
 # -*- Print the messages in the memory
-pprint([m.model_dump(include={"role", "content"}) for m in agent.memory.messages])
+if agent.memory is not None:
+    pprint([m.model_dump(include={"role", "content"}) for m in agent.memory.messages])
 
 # -*- Ask a follow up question that continues the conversation
 agent.print_response("What was my first message?", stream=True)
 # -*- Print the messages in the memory
-pprint([m.model_dump(include={"role", "content"}) for m in agent.memory.messages])
+if agent.memory is not None:
+    pprint([m.model_dump(include={"role", "content"}) for m in agent.memory.messages])

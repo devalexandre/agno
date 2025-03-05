@@ -3,12 +3,12 @@
 2. Run: `python cookbook/rag/04_agentic_rag_lancedb.py` to run the agent
 """
 
-from agno.agent import Agent
+from agno.agent.agent import Agent
 from agno.embedder.openai import OpenAIEmbedder
 from agno.knowledge.pdf_url import PDFUrlKnowledgeBase
-from agno.models.openai import OpenAIChat
-from agno.vectordb.lancedb import LanceDb, SearchType
-
+from agno.models.openai.chat import OpenAIChat
+from agno.vectordb.lancedb import LanceDb
+from agno.vectordb.search import SearchType
 # Create a knowledge base of PDFs from URLs
 knowledge_base = PDFUrlKnowledgeBase(
     urls=["https://agno-public.s3.amazonaws.com/recipes/ThaiRecipes.pdf"],

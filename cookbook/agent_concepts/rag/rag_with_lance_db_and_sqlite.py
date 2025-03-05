@@ -1,9 +1,9 @@
 """Run `pip install lancedb` to install dependencies."""
 
-from agno.agent import Agent
+from agno.agent.agent import Agent
 from agno.embedder.ollama import OllamaEmbedder
 from agno.knowledge.pdf_url import PDFUrlKnowledgeBase
-from agno.models.ollama import Ollama
+from agno.models.ollama.chat import Ollama
 from agno.storage.agent.sqlite import SqliteAgentStorage
 from agno.vectordb.lancedb import LanceDb
 

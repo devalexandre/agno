@@ -1,6 +1,6 @@
-from agno.agent import Agent
-from agno.models.deepseek import DeepSeek
-from agno.models.openai import OpenAIChat
+from agno.agent.agent import Agent
+from agno.models.deepseek.deepseek import DeepSeek
+from agno.models.openai.chat import OpenAIChat
 
 task = (
     "You are a philosopher tasked with analyzing the classic 'Trolley Problem'. In this scenario, a runaway trolley "

@@ -1,9 +1,9 @@
 import base64
 
 import requests
-from agno.agent import Agent
+from agno.agent.agent import Agent
 from agno.media import Audio
-from agno.models.openai import OpenAIChat
+from agno.models.openai.chat import OpenAIChat
 from agno.utils.audio import write_audio_to_file
 
 # Fetch the audio file and convert it to a base64 encoded string
@@ -26,7 +26,7 @@ agent.run(
     audio=[Audio(content=wav_data, format="wav")],
 )
 
-if agent.run_response.response_audio is not None:
+if agent.run_response is not None and agent.run_response.response_audio is not None:
     write_audio_to_file(
         audio=agent.run_response.response_audio.content, filename="tmp/result.wav"
     )

@@ -8,10 +8,10 @@ Steps:
 
 import json
 
-from agno.agent import Agent
+from agno.agent.agent import Agent
 from agno.memory.agent import AgentMemory
 from agno.memory.db.mongodb import MongoMemoryDb
-from agno.models.openai import OpenAIChat
+from agno.models.openai.chat import OpenAIChat
 from agno.storage.agent.mongodb import MongoDbAgentStorage
 from rich.console import Console
 from rich.json import JSON

@@ -1,6 +1,6 @@
-from agno.agent import Agent
+from agno.agent.agent import Agent
 from agno.knowledge.pdf_url import PDFUrlKnowledgeBase
-from agno.vectordb.pgvector import PgVector
+from agno.vectordb.pgvector.pgvector import PgVector
 
 db_url = "postgresql+psycopg://ai:ai@localhost:5532/ai"
 

@@ -1,7 +1,6 @@
-from agno.agent import Agent
-from agno.models.deepseek import DeepSeek
-from agno.models.openai import OpenAIChat
-
+from agno.agent.agent import Agent
+from agno.models.deepseek.deepseek import DeepSeek
+from agno.models.openai.chat import OpenAIChat
 task = (
     "Three missionaries and three cannibals need to cross a river. "
     "They have a boat that can carry up to two people at a time. "

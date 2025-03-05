@@ -1,7 +1,8 @@
 from typing import Iterator  # noqa
 from rich.pretty import pprint
-from agno.agent import Agent, RunResponse
-from agno.models.openai import OpenAIChat
+from agno.agent.agent import Agent
+from agno.run.response import  RunResponse
+from agno.models.openai.chat import OpenAIChat
 from agno.tools.yfinance import YFinanceTools
 
 agent = Agent(

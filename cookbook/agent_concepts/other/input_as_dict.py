@@ -1,4 +1,4 @@
-from agno.agent import Agent
+from agno.agent.agent import Agent
 
 Agent().print_response(
     {

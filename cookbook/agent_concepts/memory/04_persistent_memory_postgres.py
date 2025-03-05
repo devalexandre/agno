@@ -1,10 +1,11 @@
 from typing import List, Optional
 
 import typer
-from agno.agent import Agent
+from agno.agent.agent import Agent
 from agno.knowledge.pdf_url import PDFUrlKnowledgeBase
 from agno.storage.agent.postgres import PostgresAgentStorage
-from agno.vectordb.pgvector import PgVector, SearchType
+from agno.vectordb.pgvector.pgvector import PgVector
+from agno.vectordb.search import  SearchType
 
 db_url = "postgresql+psycopg://ai:ai@localhost:5532/ai"
 knowledge_base = PDFUrlKnowledgeBase(

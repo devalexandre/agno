@@ -1,5 +1,5 @@
-from agno.agent import Agent
-from agno.models.openai import OpenAIChat
+from agno.agent.agent import Agent
+from agno.models.openai.chat import OpenAIChat
 
 task = "Write a short story about life in 500000 years"
 

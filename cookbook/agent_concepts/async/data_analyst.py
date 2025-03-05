@@ -3,8 +3,8 @@
 import asyncio
 from textwrap import dedent
 
-from agno.agent import Agent
-from agno.models.openai import OpenAIChat
+from agno.agent.agent import Agent
+from agno.models.openai.chat import OpenAIChat
 from agno.tools.duckdb import DuckDbTools
 
 duckdb_tools = DuckDbTools(

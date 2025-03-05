@@ -2,8 +2,8 @@
 pip install openai moviepy ffmpeg
 """
 
-from agno.agent import Agent
-from agno.models.openai import OpenAIChat
+from agno.agent.agent import Agent
+from agno.models.openai.chat import OpenAIChat
 from agno.tools.moviepy_video import MoviePyVideoTools
 from agno.tools.openai import OpenAITools
 

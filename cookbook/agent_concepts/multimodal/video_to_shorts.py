@@ -8,11 +8,11 @@ import subprocess
 import time
 from pathlib import Path
 
-from agno.agent import Agent
+from agno.agent.agent import Agent
 from agno.media import Video
-from agno.models.google import Gemini
+from agno.models.google.gemini  import Gemini
 from agno.utils.log import logger
-from google.generativeai import get_file, upload_file
+from google.generativeai.files import get_file,  upload_file
 
 video_path = Path(__file__).parent.joinpath("sample.mp4")
 output_dir = Path("tmp/shorts")

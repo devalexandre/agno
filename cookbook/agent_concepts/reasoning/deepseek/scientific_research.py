@@ -1,6 +1,6 @@
-from agno.agent import Agent
-from agno.models.deepseek import DeepSeek
-from agno.models.openai import OpenAIChat
+from agno.agent.agent import Agent
+from agno.models.deepseek.deepseek import DeepSeek
+from agno.models.openai.chat import OpenAIChat
 
 task = (
     "Read the following abstract of a scientific paper and provide a critical evaluation of its methodology,"

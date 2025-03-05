@@ -5,9 +5,10 @@ Steps:
 2. Run: `pip install openai sqlalchemy 'psycopg[binary]' pgvector` to install the dependencies
 """
 
-from agno.agent import Agent, AgentMemory
+from agno.agent.agent import Agent
+from agno.memory.agent import AgentMemory
 from agno.memory.db.postgres import PgMemoryDb
-from agno.models.openai import OpenAIChat
+from agno.models.openai.chat import OpenAIChat
 from agno.storage.agent.postgres import PostgresAgentStorage
 from rich.pretty import pprint
 
@@ -31,23 +32,24 @@ agent = Agent(
 # -*- Share personal information
 agent.print_response("My name is john billings?", stream=True)
 # -*- Print memories
-pprint(agent.memory.memories)
-# -*- Print summary
-pprint(agent.memory.summary)
+if agent.memory is not None:
+    pprint(agent.memory.memories)
+    # -*- Print summary
+    pprint(agent.memory.summary)
 
-# -*- Share personal information
-agent.print_response("I live in nyc?", stream=True)
-# -*- Print memories
-pprint(agent.memory.memories)
-# -*- Print summary
-pprint(agent.memory.summary)
+    # -*- Share personal information
+    agent.print_response("I live in nyc?", stream=True)
+    # -*- Print memories
+    pprint(agent.memory.memories)
+    # -*- Print summary
+    pprint(agent.memory.summary)
 
-# -*- Share personal information
-agent.print_response("I'm going to a concert tomorrow?", stream=True)
-# -*- Print memories
-pprint(agent.memory.memories)
-# -*- Print summary
-pprint(agent.memory.summary)
+    # -*- Share personal information
+    agent.print_response("I'm going to a concert tomorrow?", stream=True)
+    # -*- Print memories
+    pprint(agent.memory.memories)
+    # -*- Print summary
+    pprint(agent.memory.summary)
 
 # Ask about the conversation
 agent.print_response(

@@ -1,8 +1,9 @@
 import asyncio
 from typing import List
 
-from agno.agent import Agent, RunResponse  # noqa
-from agno.models.openai import OpenAIChat
+from agno.agent.agent import Agent  # noqa
+from agno.run.response import RunResponse
+from agno.models.openai.chat import OpenAIChat
 from pydantic import BaseModel, Field
 from rich.pretty import pprint  # noqa
 

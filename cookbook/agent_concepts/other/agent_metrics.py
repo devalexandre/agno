@@ -1,7 +1,8 @@
 from typing import Iterator
 
-from agno.agent import Agent, RunResponse
-from agno.models.openai import OpenAIChat
+from agno.agent.agent import Agent
+from agno.run.response import  RunResponse
+from agno.models.openai.chat import OpenAIChat
 from agno.tools.yfinance import YFinanceTools
 from agno.utils.pprint import pprint_run_response
 from rich.pretty import pprint
@@ -19,17 +20,18 @@ run_stream: Iterator[RunResponse] = agent.run(
 pprint_run_response(run_stream, markdown=True)
 
 # Print metrics per message
-if agent.run_response.messages:
-    for message in agent.run_response.messages:
-        if message.role == "assistant":
-            if message.content:
-                print(f"Message: {message.content}")
-            elif message.tool_calls:
-                print(f"Tool calls: {message.tool_calls}")
-            print("---" * 5, "Metrics", "---" * 5)
-            pprint(message.metrics)
-            print("---" * 20)
+if agent.run_response is not None:
+    if agent.run_response.messages:
+        for message in agent.run_response.messages:
+            if message.role == "assistant":
+                if message.content:
+                    print(f"Message: {message.content}")
+                elif message.tool_calls:
+                    print(f"Tool calls: {message.tool_calls}")
+                print("---" * 5, "Metrics", "---" * 5)
+                pprint(message.metrics)
+                print("---" * 20)
 
-# Print the metrics
-print("---" * 5, "Aggregated Metrics", "---" * 5)
-pprint(agent.run_response.metrics)
+    # Print the metrics
+    print("---" * 5, "Aggregated Metrics", "---" * 5)
+    pprint(agent.run_response.metrics)

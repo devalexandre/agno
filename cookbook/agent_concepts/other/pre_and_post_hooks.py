@@ -2,9 +2,9 @@ import json
 from typing import Iterator
 
 import httpx
-from agno.agent import Agent
-from agno.tools import FunctionCall, tool
-
+from agno.agent.agent import Agent
+from agno.tools.function import FunctionCall
+from agno.tools.decorator import tool
 
 def pre_hook(fc: FunctionCall):
     print(f"Pre-hook: {fc.function.name}")

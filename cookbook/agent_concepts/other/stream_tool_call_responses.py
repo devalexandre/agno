@@ -2,8 +2,8 @@ import json
 from typing import Iterator
 
 import httpx
-from agno.agent import Agent
-from agno.tools import tool
+from agno.agent.agent import Agent
+from agno.tools.decorator import tool
 
 
 @tool(show_result=True)
