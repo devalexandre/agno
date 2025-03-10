@@ -62,19 +62,19 @@ class Cassandra(VectorDb):
         """Check if a document exists by ID."""
         query = f"SELECT COUNT(*) FROM {self.keyspace}.{self.table_name} WHERE row_id = %s"
         result = self.session.execute(query, (document.id,))
-        return result[0].count > 0
+        return result.one()[0] > 0
 
     def name_exists(self, name: str) -> bool:
         """Check if a document exists by name."""
-        query = f"SELECT COUNT(*) FROM {self.keyspace}.{self.table_name} WHERE document_name = %s"
+        query = f"SELECT COUNT(*) FROM {self.keyspace}.{self.table_name} WHERE document_name = %s ALLOW FILTERING"
         result = self.session.execute(query, (name,))
-        return result[0].count > 0
+        return result.one()[0] > 0
 
     def id_exists(self, id: str) -> bool:
         """Check if a document exists by ID."""
-        query = f"SELECT COUNT(*) FROM {self.keyspace}.{self.table_name} WHERE row_id = %s"
+        query = f"SELECT COUNT(*) FROM {self.keyspace}.{self.table_name} WHERE row_id = %s ALLOW FILTERING"
         result = self.session.execute(query, (id,))
-        return result[0].count > 0
+        return result.one()[0] > 0
 
     def insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
         logger.debug(f"Cassandra VectorDB : Inserting Documents to the table {self.table_name}")
@@ -143,3 +143,26 @@ class Cassandra(VectorDb):
         logger.debug(f"Cassandra VectorDB : Clearing the table {self.table_name}")
         self.table.clear()
         return True
+
+    async def async_create(self) -> None:
+        raise NotImplementedError(f"Async not supported on {self.__class__.__name__}.")
+
+    async def async_doc_exists(self, document: Document) -> bool:
+        raise NotImplementedError(f"Async not supported on {self.__class__.__name__}.")
+
+    async def async_insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+        raise NotImplementedError(f"Async not supported on {self.__class__.__name__}.")
+
+    async def async_upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+        raise NotImplementedError(f"Async not supported on {self.__class__.__name__}.")
+
+    async def async_search(
+        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
+    ) -> List[Document]:
+        raise NotImplementedError(f"Async not supported on {self.__class__.__name__}.")
+
+    async def async_drop(self) -> None:
+        raise NotImplementedError(f"Async not supported on {self.__class__.__name__}.")
+
+    async def async_exists(self) -> bool:
+        raise NotImplementedError(f"Async not supported on {self.__class__.__name__}.")
