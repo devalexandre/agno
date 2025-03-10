@@ -6,10 +6,25 @@ from agno.utils.log import logger
 
 try:
     from ollama import Client as OllamaClient
-except (ModuleNotFoundError, ImportError):
-    raise ImportError("`ollama` not installed. Please install using `pip install ollama`")
+    import importlib.metadata as metadata
+    from packaging import version
 
+    ollama_version = metadata.version("ollama")
+    if version.parse(ollama_version).major == 0 and version.parse(ollama_version).minor < 3:
+        import warnings
+        warnings.warn("Suporte apenas para Ollama v0.3.x ou superior", UserWarning)
+        raise RuntimeError("Versão incompatível do Ollama detectada.")
 
+except ImportError as e:
+    if "ollama" in str(e):
+        raise ImportError(
+            "Ollama não instalado. Instale com `pip install ollama`"
+        ) from e
+    else:
+        raise ImportError(
+            "Dependências faltantes. Instale com `pip install packaging importlib-metadata`"
+        ) from e
+        
 @dataclass
 class OllamaEmbedder(Embedder):
     id: str = "openhermes"
