@@ -81,7 +81,30 @@ def _prepare_command(command: str) -> list[str]:
     if executable not in ALLOWED_COMMANDS:
         raise ValueError(f"MCP command needs to use one of the following executables: {ALLOWED_COMMANDS}")
 
-    return parts
+    first_part = parts[0]
+    executable = first_part.split("/")[-1]
+    
+    # Allow known commands
+    if executable in ALLOWED_COMMANDS:
+        return parts
+    
+    # Allow relative paths to custom binaries
+    if first_part.startswith(("./", "../")):
+        return parts
+    
+    # Allow absolute paths to existing files
+    if first_part.startswith("/") and os.path.isfile(first_part):
+        return parts
+    
+    # Allow binaries in current directory without ./
+    if "/" not in first_part and os.path.isfile(first_part):
+        return parts
+    
+    # Allow binaries in PATH
+    if shutil.which(first_part):
+        return parts
+    
+    raise ValueError(f"MCP command needs to use one of the following executables: {ALLOWED_COMMANDS}")
 
 
 @dataclass
