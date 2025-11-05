@@ -3,13 +3,6 @@ Test Semantic Compression with a long description that exceeds the token thresho
 This will trigger the compression and show the before/after token counts.
 """
 
-import sys
-from pathlib import Path
-
-# Add the libs/agno directory to the path to use the local version
-project_root = Path(__file__).parent.parent.parent.parent
-sys.path.insert(0, str(project_root / "libs" / "agno"))
-
 from agno.agent import Agent
 from agno.models.ollama import Ollama
 
