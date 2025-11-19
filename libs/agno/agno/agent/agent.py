@@ -38,6 +38,7 @@ from agno.exceptions import (
     RunCancelledException,
     StopAgentRun,
 )
+from agno.filters import FilterExpr
 from agno.guardrails import BaseGuardrail
 from agno.knowledge.knowledge import Knowledge
 from agno.knowledge.types import KnowledgeFilter
@@ -49,13 +50,13 @@ from agno.models.metrics import Metrics
 from agno.models.response import ModelResponse, ModelResponseEvent, ToolExecution
 from agno.models.utils import get_model
 from agno.reasoning.step import NextAction, ReasoningStep, ReasoningSteps
+from agno.run import RunContext, RunStatus
 from agno.run.agent import (
     RunEvent,
     RunInput,
     RunOutput,
     RunOutputEvent,
 )
-from agno.run.base import RunContext, RunStatus
 from agno.run.cancel import (
     cancel_run as cancel_run_global,
 )
@@ -95,7 +96,9 @@ from agno.utils.agent import (
     scrub_media_from_run_output,
     scrub_tool_results_from_run_output,
     set_session_name_util,
+    store_media_util,
     update_session_state_util,
+    validate_media_object_id,
     wait_for_background_tasks,
     wait_for_background_tasks_stream,
 )
@@ -231,7 +234,7 @@ class Agent:
     knowledge: Optional[Knowledge] = None
     # Enable RAG by adding references from Knowledge to the user prompt.
     # Add knowledge_filters to the Agent class attributes
-    knowledge_filters: Optional[Dict[str, Any]] = None
+    knowledge_filters: Optional[Union[Dict[str, Any], List[FilterExpr]]] = None
     # Let the agent choose the knowledge filters
     enable_agentic_knowledge_filters: Optional[bool] = False
     add_knowledge_to_context: bool = False
@@ -263,9 +266,9 @@ class Agent:
 
     # --- Agent Hooks ---
     # Functions called right after agent-session is loaded, before processing starts
-    pre_hooks: Optional[Union[List[Callable[..., Any]], List[BaseGuardrail]]] = None
+    pre_hooks: Optional[List[Union[Callable[..., Any], BaseGuardrail]]] = None
     # Functions called after output is generated but before the response is returned
-    post_hooks: Optional[Union[List[Callable[..., Any]], List[BaseGuardrail]]] = None
+    post_hooks: Optional[List[Union[Callable[..., Any], BaseGuardrail]]] = None
 
     # --- Agent Reasoning ---
     # Enable reasoning by working through the problem step by step.
@@ -454,7 +457,7 @@ class Agent:
         store_tool_messages: bool = True,
         store_history_messages: bool = True,
         knowledge: Optional[Knowledge] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        knowledge_filters: Optional[Union[Dict[str, Any], List[FilterExpr]]] = None,
         enable_agentic_knowledge_filters: Optional[bool] = None,
         add_knowledge_to_context: bool = False,
         knowledge_retriever: Optional[Callable[..., Optional[List[Union[Dict, str]]]]] = None,
@@ -464,8 +467,8 @@ class Agent:
         tool_call_limit: Optional[int] = None,
         tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
         tool_hooks: Optional[List[Callable]] = None,
-        pre_hooks: Optional[Union[List[Callable[..., Any]], List[BaseGuardrail]]] = None,
-        post_hooks: Optional[Union[List[Callable[..., Any]], List[BaseGuardrail]]] = None,
+        pre_hooks: Optional[List[Union[Callable[..., Any], BaseGuardrail]]] = None,
+        post_hooks: Optional[List[Union[Callable[..., Any], BaseGuardrail]]] = None,
         reasoning: bool = False,
         reasoning_model: Optional[Union[Model, str]] = None,
         reasoning_agent: Optional[Agent] = None,
@@ -1086,7 +1089,7 @@ class Agent:
 
             # 8. Store media if enabled
             if self.store_media:
-                self._store_media(run_response, model_response)
+                store_media_util(run_response, model_response)
 
             # 9. Convert the response to the structured format if needed
             self._convert_response_to_structured_format(run_response)
@@ -1159,7 +1162,7 @@ class Agent:
         add_session_state_to_context: Optional[bool] = None,
         response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
         stream_events: bool = False,
-        yield_run_response: bool = False,
+        yield_run_output: Optional[bool] = None,
         debug_mode: Optional[bool] = None,
         **kwargs: Any,
     ) -> Iterator[Union[RunOutputEvent, RunOutput]]:
@@ -1429,7 +1432,7 @@ class Agent:
             if stream_events:
                 yield completed_event  # type: ignore
 
-            if yield_run_response:
+            if yield_run_output:
                 yield run_response
 
             # Log Agent Telemetry
@@ -1473,12 +1476,13 @@ class Agent:
         user_id: Optional[str] = None,
         session_id: Optional[str] = None,
         session_state: Optional[Dict[str, Any]] = None,
+        run_context: Optional[RunContext] = None,
         audio: Optional[Sequence[Audio]] = None,
         images: Optional[Sequence[Image]] = None,
         videos: Optional[Sequence[Video]] = None,
         files: Optional[Sequence[File]] = None,
         retries: Optional[int] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        knowledge_filters: Optional[Union[Dict[str, Any], List[FilterExpr]]] = None,
         add_history_to_context: Optional[bool] = None,
         add_dependencies_to_context: Optional[bool] = None,
         add_session_state_to_context: Optional[bool] = None,
@@ -1499,18 +1503,20 @@ class Agent:
         user_id: Optional[str] = None,
         session_id: Optional[str] = None,
         session_state: Optional[Dict[str, Any]] = None,
+        run_context: Optional[RunContext] = None,
         audio: Optional[Sequence[Audio]] = None,
         images: Optional[Sequence[Image]] = None,
         videos: Optional[Sequence[Video]] = None,
         files: Optional[Sequence[File]] = None,
         retries: Optional[int] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        knowledge_filters: Optional[Union[Dict[str, Any], List[FilterExpr]]] = None,
         add_history_to_context: Optional[bool] = None,
         add_dependencies_to_context: Optional[bool] = None,
         add_session_state_to_context: Optional[bool] = None,
         dependencies: Optional[Dict[str, Any]] = None,
         metadata: Optional[Dict[str, Any]] = None,
-        yield_run_response: bool = False,
+        yield_run_response: bool = False,  # To be deprecated: use yield_run_output instead
+        yield_run_output: bool = False,
         debug_mode: Optional[bool] = None,
         **kwargs: Any,
     ) -> Iterator[Union[RunOutputEvent, RunOutput]]: ...
@@ -1525,18 +1531,20 @@ class Agent:
         user_id: Optional[str] = None,
         session_id: Optional[str] = None,
         session_state: Optional[Dict[str, Any]] = None,
+        run_context: Optional[RunContext] = None,
         audio: Optional[Sequence[Audio]] = None,
         images: Optional[Sequence[Image]] = None,
         videos: Optional[Sequence[Video]] = None,
         files: Optional[Sequence[File]] = None,
         retries: Optional[int] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        knowledge_filters: Optional[Union[Dict[str, Any], List[FilterExpr]]] = None,
         add_history_to_context: Optional[bool] = None,
         add_dependencies_to_context: Optional[bool] = None,
         add_session_state_to_context: Optional[bool] = None,
         dependencies: Optional[Dict[str, Any]] = None,
         metadata: Optional[Dict[str, Any]] = None,
-        yield_run_response: bool = False,
+        yield_run_response: Optional[bool] = None,  # To be deprecated: use yield_run_output instead
+        yield_run_output: Optional[bool] = None,
         debug_mode: Optional[bool] = None,
         **kwargs: Any,
     ) -> Union[RunOutput, Iterator[Union[RunOutputEvent, RunOutput]]]:
@@ -1560,9 +1568,9 @@ class Agent:
         # Normalise hook & guardails
         if not self._hooks_normalised:
             if self.pre_hooks:
-                self.pre_hooks = normalize_hooks(self.pre_hooks)
+                self.pre_hooks = normalize_hooks(self.pre_hooks)  # type: ignore
             if self.post_hooks:
-                self.post_hooks = normalize_hooks(self.post_hooks)
+                self.post_hooks = normalize_hooks(self.post_hooks)  # type: ignore
             self._hooks_normalised = True
 
         session_id, user_id = self._initialize_session(session_id=session_id, user_id=user_id)
@@ -1570,7 +1578,7 @@ class Agent:
         # Initialize the Agent
         self.initialize_agent(debug_mode=debug_mode)
 
-        image_artifacts, video_artifacts, audio_artifacts, file_artifacts = self._validate_media_object_id(
+        image_artifacts, video_artifacts, audio_artifacts, file_artifacts = validate_media_object_id(
             images=images, videos=videos, audios=audio, files=files
         )
 
@@ -1598,7 +1606,7 @@ class Agent:
         dependencies = dependencies if dependencies is not None else self.dependencies
 
         # Initialize run context
-        run_context = RunContext(
+        run_context = run_context or RunContext(
             run_id=run_id,
             session_id=session_id,
             user_id=user_id,
@@ -1646,11 +1654,8 @@ class Agent:
         self.model = cast(Model, self.model)
 
         # Merge agent metadata with run metadata
-        if self.metadata is not None:
-            if metadata is None:
-                metadata = self.metadata
-            else:
-                merge_dictionaries(metadata, self.metadata)
+        if self.metadata is not None and metadata is not None:
+            merge_dictionaries(metadata, self.metadata)
 
         # Create a new run_response for this attempt
         run_response = RunOutput(
@@ -1677,6 +1682,8 @@ class Agent:
         last_exception = None
         num_attempts = retries + 1
 
+        yield_run_output = yield_run_output or yield_run_response  # For backwards compatibility
+
         for attempt in range(num_attempts):
             try:
                 if stream:
@@ -1690,7 +1697,7 @@ class Agent:
                         add_session_state_to_context=add_session_state,
                         response_format=response_format,
                         stream_events=stream_events,
-                        yield_run_response=yield_run_response,
+                        yield_run_output=yield_run_output,
                         debug_mode=debug_mode,
                         **kwargs,
                     )
@@ -1936,7 +1943,7 @@ class Agent:
 
             # 12. Store media if enabled
             if self.store_media:
-                self._store_media(run_response, model_response)
+                store_media_util(run_response, model_response)
 
             # 13. Execute post-hooks (after output is generated but before response is returned)
             if self.post_hooks is not None:
@@ -2031,7 +2038,7 @@ class Agent:
         add_session_state_to_context: Optional[bool] = None,
         response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
         stream_events: bool = False,
-        yield_run_response: Optional[bool] = None,
+        yield_run_output: Optional[bool] = None,
         debug_mode: Optional[bool] = None,
         **kwargs: Any,
     ) -> AsyncIterator[Union[RunOutputEvent, RunOutput]]:
@@ -2093,6 +2100,7 @@ class Agent:
             pre_hook_iterator = self._aexecute_pre_hooks(
                 hooks=self.pre_hooks,  # type: ignore
                 run_response=run_response,
+                run_context=run_context,
                 run_input=run_input,
                 session=agent_session,
                 user_id=user_id,
@@ -2328,7 +2336,7 @@ class Agent:
             if stream_events:
                 yield completed_event  # type: ignore
 
-            if yield_run_response:
+            if yield_run_output:
                 yield run_response
 
             # Log Agent Telemetry
@@ -2391,6 +2399,7 @@ class Agent:
         user_id: Optional[str] = None,
         session_id: Optional[str] = None,
         session_state: Optional[Dict[str, Any]] = None,
+        run_context: Optional[RunContext] = None,
         audio: Optional[Sequence[Audio]] = None,
         images: Optional[Sequence[Image]] = None,
         videos: Optional[Sequence[Video]] = None,
@@ -2398,7 +2407,7 @@ class Agent:
         stream_events: Optional[bool] = None,
         stream_intermediate_steps: Optional[bool] = None,
         retries: Optional[int] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        knowledge_filters: Optional[Union[Dict[str, Any], List[FilterExpr]]] = None,
         add_history_to_context: Optional[bool] = None,
         add_dependencies_to_context: Optional[bool] = None,
         add_session_state_to_context: Optional[bool] = None,
@@ -2416,6 +2425,7 @@ class Agent:
         stream: Literal[True] = True,
         user_id: Optional[str] = None,
         session_id: Optional[str] = None,
+        run_context: Optional[RunContext] = None,
         audio: Optional[Sequence[Audio]] = None,
         images: Optional[Sequence[Image]] = None,
         videos: Optional[Sequence[Video]] = None,
@@ -2423,13 +2433,14 @@ class Agent:
         stream_events: Optional[bool] = None,
         stream_intermediate_steps: Optional[bool] = None,
         retries: Optional[int] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        knowledge_filters: Optional[Union[Dict[str, Any], List[FilterExpr]]] = None,
         add_history_to_context: Optional[bool] = None,
         add_dependencies_to_context: Optional[bool] = None,
         add_session_state_to_context: Optional[bool] = None,
         dependencies: Optional[Dict[str, Any]] = None,
         metadata: Optional[Dict[str, Any]] = None,
-        yield_run_response: Optional[bool] = None,
+        yield_run_response: Optional[bool] = None,  # To be deprecated: use yield_run_output instead
+        yield_run_output: Optional[bool] = None,
         debug_mode: Optional[bool] = None,
         **kwargs: Any,
     ) -> AsyncIterator[Union[RunOutputEvent, RunOutput]]: ...
@@ -2442,6 +2453,7 @@ class Agent:
         user_id: Optional[str] = None,
         session_id: Optional[str] = None,
         session_state: Optional[Dict[str, Any]] = None,
+        run_context: Optional[RunContext] = None,
         audio: Optional[Sequence[Audio]] = None,
         images: Optional[Sequence[Image]] = None,
         videos: Optional[Sequence[Video]] = None,
@@ -2449,13 +2461,14 @@ class Agent:
         stream_events: Optional[bool] = None,
         stream_intermediate_steps: Optional[bool] = None,
         retries: Optional[int] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        knowledge_filters: Optional[Union[Dict[str, Any], List[FilterExpr]]] = None,
         add_history_to_context: Optional[bool] = None,
         add_dependencies_to_context: Optional[bool] = None,
         add_session_state_to_context: Optional[bool] = None,
         dependencies: Optional[Dict[str, Any]] = None,
         metadata: Optional[Dict[str, Any]] = None,
-        yield_run_response: Optional[bool] = None,
+        yield_run_response: Optional[bool] = None,  # To be deprecated: use yield_run_output instead
+        yield_run_output: Optional[bool] = None,
         debug_mode: Optional[bool] = None,
         **kwargs: Any,
     ) -> Union[RunOutput, AsyncIterator[RunOutputEvent]]:
@@ -2475,9 +2488,9 @@ class Agent:
         # Normalise hooks & guardails
         if not self._hooks_normalised:
             if self.pre_hooks:
-                self.pre_hooks = normalize_hooks(self.pre_hooks, async_mode=True)
+                self.pre_hooks = normalize_hooks(self.pre_hooks, async_mode=True)  # type: ignore
             if self.post_hooks:
-                self.post_hooks = normalize_hooks(self.post_hooks, async_mode=True)
+                self.post_hooks = normalize_hooks(self.post_hooks, async_mode=True)  # type: ignore
             self._hooks_normalised = True
 
         # Initialize session
@@ -2486,7 +2499,7 @@ class Agent:
         # Initialize the Agent
         self.initialize_agent(debug_mode=debug_mode)
 
-        image_artifacts, video_artifacts, audio_artifacts, file_artifacts = self._validate_media_object_id(
+        image_artifacts, video_artifacts, audio_artifacts, file_artifacts = validate_media_object_id(
             images=images, videos=videos, audios=audio, files=files
         )
 
@@ -2545,7 +2558,7 @@ class Agent:
                 merge_dictionaries(metadata, self.metadata)
 
         # Initialize run context
-        run_context = RunContext(
+        run_context = run_context or RunContext(
             run_id=run_id,
             session_id=session_id,
             user_id=user_id,
@@ -2580,6 +2593,8 @@ class Agent:
         last_exception = None
         num_attempts = retries + 1
 
+        yield_run_output = yield_run_output or yield_run_response  # For backwards compatibility
+
         for attempt in range(num_attempts):
             try:
                 # Pass the new run_response to _arun
@@ -2590,7 +2605,7 @@ class Agent:
                         user_id=user_id,
                         response_format=response_format,
                         stream_events=stream_events,
-                        yield_run_response=yield_run_response,
+                        yield_run_output=yield_run_output,
                         session_id=session_id,
                         add_history_to_context=add_history,
                         add_dependencies_to_context=add_dependencies,
@@ -2669,7 +2684,7 @@ class Agent:
         user_id: Optional[str] = None,
         session_id: Optional[str] = None,
         retries: Optional[int] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        knowledge_filters: Optional[Union[Dict[str, Any], List[FilterExpr]]] = None,
         dependencies: Optional[Dict[str, Any]] = None,
         metadata: Optional[Dict[str, Any]] = None,
         debug_mode: Optional[bool] = None,
@@ -2688,7 +2703,7 @@ class Agent:
         user_id: Optional[str] = None,
         session_id: Optional[str] = None,
         retries: Optional[int] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        knowledge_filters: Optional[Union[Dict[str, Any], List[FilterExpr]]] = None,
         dependencies: Optional[Dict[str, Any]] = None,
         metadata: Optional[Dict[str, Any]] = None,
         debug_mode: Optional[bool] = None,
@@ -2705,8 +2720,9 @@ class Agent:
         stream_intermediate_steps: Optional[bool] = None,
         user_id: Optional[str] = None,
         session_id: Optional[str] = None,
+        run_context: Optional[RunContext] = None,
         retries: Optional[int] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        knowledge_filters: Optional[Union[Dict[str, Any], List[FilterExpr]]] = None,
         dependencies: Optional[Dict[str, Any]] = None,
         metadata: Optional[Dict[str, Any]] = None,
         debug_mode: Optional[bool] = None,
@@ -2722,6 +2738,7 @@ class Agent:
             stream_events: Whether to stream all events.
             user_id: The user id to continue the run for.
             session_id: The session id to continue the run for.
+            run_context: The run context to use for the run.
             retries: The number of retries to continue the run for.
             knowledge_filters: The knowledge filters to use for the run.
             dependencies: The dependencies to use for the run.
@@ -2762,7 +2779,7 @@ class Agent:
         dependencies = dependencies if dependencies is not None else self.dependencies
 
         # Initialize run context
-        run_context = RunContext(
+        run_context = run_context or RunContext(
             run_id=run_id,  # type: ignore
             session_id=session_id,
             user_id=user_id,
@@ -2991,7 +3008,7 @@ class Agent:
 
             # 5. Store media if enabled
             if self.store_media:
-                self._store_media(run_response, model_response)
+                store_media_util(run_response, model_response)
 
             # 6. Execute post-hooks
             if self.post_hooks is not None:
@@ -3228,7 +3245,7 @@ class Agent:
         user_id: Optional[str] = None,
         session_id: Optional[str] = None,
         retries: Optional[int] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        knowledge_filters: Optional[Union[Dict[str, Any], List[FilterExpr]]] = None,
         dependencies: Optional[Dict[str, Any]] = None,
         metadata: Optional[Dict[str, Any]] = None,
         debug_mode: Optional[bool] = None,
@@ -3247,7 +3264,7 @@ class Agent:
         user_id: Optional[str] = None,
         session_id: Optional[str] = None,
         retries: Optional[int] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        knowledge_filters: Optional[Union[Dict[str, Any], List[FilterExpr]]] = None,
         dependencies: Optional[Dict[str, Any]] = None,
         metadata: Optional[Dict[str, Any]] = None,
         debug_mode: Optional[bool] = None,
@@ -3264,12 +3281,13 @@ class Agent:
         stream_intermediate_steps: Optional[bool] = None,
         user_id: Optional[str] = None,
         session_id: Optional[str] = None,
+        run_context: Optional[RunContext] = None,
         retries: Optional[int] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        knowledge_filters: Optional[Union[Dict[str, Any], List[FilterExpr]]] = None,
         dependencies: Optional[Dict[str, Any]] = None,
         metadata: Optional[Dict[str, Any]] = None,
         debug_mode: Optional[bool] = None,
-        yield_run_response: bool = False,
+        yield_run_output: bool = False,
         **kwargs,
     ) -> Union[RunOutput, AsyncIterator[Union[RunOutputEvent, RunOutput]]]:
         """Continue a previous run.
@@ -3282,12 +3300,13 @@ class Agent:
             stream_events: Whether to stream all events.
             user_id: The user id to continue the run for.
             session_id: The session id to continue the run for.
+            run_context: The run context to use for the run.
             retries: The number of retries to continue the run for.
             knowledge_filters: The knowledge filters to use for the run.
             dependencies: The dependencies to use for continuing the run.
             metadata: The metadata to use for continuing the run.
             debug_mode: Whether to enable debug mode.
-            yield_run_response: Whether to yield the run response.
+            yield_run_output: Whether to yield the run response.
             (deprecated) stream_intermediate_steps: Whether to stream all steps.
         """
         if run_response is None and run_id is None:
@@ -3348,7 +3367,7 @@ class Agent:
         self.model = cast(Model, self.model)
 
         # Initialize run context
-        run_context = RunContext(
+        run_context = run_context or RunContext(
             run_id=run_id,  # type: ignore
             session_id=session_id,
             user_id=user_id,
@@ -3372,7 +3391,7 @@ class Agent:
                         session_id=session_id,
                         response_format=response_format,
                         stream_events=stream_events,
-                        yield_run_response=yield_run_response,
+                        yield_run_output=yield_run_output,
                         debug_mode=debug_mode,
                         **kwargs,
                     )
@@ -3561,7 +3580,7 @@ class Agent:
 
             # 11. Store media if enabled
             if self.store_media:
-                self._store_media(run_response, model_response)
+                store_media_util(run_response, model_response)
 
             raise_if_cancelled(run_response.run_id)  # type: ignore
 
@@ -3641,7 +3660,7 @@ class Agent:
         user_id: Optional[str] = None,
         response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
         stream_events: bool = False,
-        yield_run_response: Optional[bool] = None,
+        yield_run_output: bool = False,
         debug_mode: Optional[bool] = None,
         **kwargs,
     ) -> AsyncIterator[Union[RunOutputEvent, RunOutput]]:
@@ -3881,7 +3900,7 @@ class Agent:
             if stream_events:
                 yield completed_event  # type: ignore
 
-            if yield_run_response:
+            if yield_run_output:
                 yield run_response
 
             # Log Agent Telemetry
@@ -4632,25 +4651,6 @@ class Agent:
                 _t.requires_user_input = False
                 _t.answered = True
 
-    def _store_media(self, run_response: RunOutput, model_response: ModelResponse):
-        """Store media from model response in run_response for persistence"""
-        # Handle generated media fields from ModelResponse (generated media)
-        if model_response.images is not None:
-            for image in model_response.images:
-                self._add_image(image, run_response)  # Generated images go to run_response.images
-
-        if model_response.videos is not None:
-            for video in model_response.videos:
-                self._add_video(video, run_response)  # Generated videos go to run_response.videos
-
-        if model_response.audios is not None:
-            for audio in model_response.audios:
-                self._add_audio(audio, run_response)  # Generated audio go to run_response.audio
-
-        if model_response.files is not None:
-            for file in model_response.files:
-                self._add_file(file, run_response)  # Generated files go to run_response.files
-
     def _update_run_response(
         self,
         model_response: ModelResponse,
@@ -5075,7 +5075,9 @@ class Agent:
                     # Store media in run_response if store_media is enabled
                     if self.store_media:
                         for image in model_response_event.images:
-                            self._add_image(image, run_response)
+                            if run_response.images is None:
+                                run_response.images = []
+                            run_response.images.append(image)
 
             # Handle tool interruption events
             elif model_response_event.event == ModelResponseEvent.tool_call_paused.value:
@@ -5124,15 +5126,27 @@ class Agent:
 
                 if model_response_event.images is not None:
                     for image in model_response_event.images:
-                        self._add_image(image, run_response)
+                        if run_response.images is None:
+                            run_response.images = []
+                        run_response.images.append(image)
 
                 if model_response_event.videos is not None:
                     for video in model_response_event.videos:
-                        self._add_video(video, run_response)
+                        if run_response.videos is None:
+                            run_response.videos = []
+                        run_response.videos.append(video)
 
                 if model_response_event.audios is not None:
                     for audio in model_response_event.audios:
-                        self._add_audio(audio, run_response)
+                        if run_response.audio is None:
+                            run_response.audio = []
+                        run_response.audio.append(audio)
+
+                if model_response_event.files is not None:
+                    for file_obj in model_response_event.files:
+                        if run_response.files is None:
+                            run_response.files = []
+                        run_response.files.append(file_obj)
 
                 reasoning_step: Optional[ReasoningStep] = None
 
@@ -5352,12 +5366,8 @@ class Agent:
         run_context: RunContext,
         session: AgentSession,
         user_id: Optional[str] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
     ) -> List[Union[Toolkit, Callable, Function, Dict]]:
         agent_tools: List[Union[Toolkit, Callable, Function, Dict]] = []
-
-        # Consider both run_context.knowledge_filters and knowledge_filters (deprecated)
-        run_context.knowledge_filters = run_context.knowledge_filters or knowledge_filters
 
         # Add provided tools
         if self.tools is not None:
@@ -5427,13 +5437,9 @@ class Agent:
         run_context: RunContext,
         session: AgentSession,
         user_id: Optional[str] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
         check_mcp_tools: bool = True,
     ) -> List[Union[Toolkit, Callable, Function, Dict]]:
         agent_tools: List[Union[Toolkit, Callable, Function, Dict]] = []
-
-        # Consider both run_context.knowledge_filters and knowledge_filters (deprecated)
-        run_context.knowledge_filters = run_context.knowledge_filters or knowledge_filters
 
         # Connect MCP tools
         await self._connect_mcp_tools()
@@ -5771,6 +5777,9 @@ class Agent:
                 raise ValueError("Db not initialized")
             return self.db.get_session(session_id=session_id, session_type=session_type)  # type: ignore
         except Exception as e:
+            import traceback
+
+            traceback.print_exc(limit=3)
             log_warning(f"Error getting session from db: {e}")
             return None
 
@@ -5781,12 +5790,17 @@ class Agent:
         try:
             if not self.db:
                 raise ValueError("Db not initialized")
-            return await self.db.get_session(session_id=session_id, session_type=SessionType.AGENT)  # type: ignore
+            return await self.db.get_session(session_id=session_id, session_type=session_type)  # type: ignore
         except Exception as e:
+            import traceback
+
+            traceback.print_exc(limit=3)
             log_warning(f"Error getting session from db: {e}")
             return None
 
-    def _upsert_session(self, session: AgentSession) -> Optional[AgentSession]:
+    def _upsert_session(
+        self, session: Union[AgentSession, TeamSession, WorkflowSession]
+    ) -> Optional[Union[AgentSession, TeamSession, WorkflowSession]]:
         """Upsert a Session into the database."""
 
         try:
@@ -5794,16 +5808,24 @@ class Agent:
                 raise ValueError("Db not initialized")
             return self.db.upsert_session(session=session)  # type: ignore
         except Exception as e:
+            import traceback
+
+            traceback.print_exc(limit=3)
             log_warning(f"Error upserting session into db: {e}")
             return None
 
-    async def _aupsert_session(self, session: AgentSession) -> Optional[AgentSession]:
+    async def _aupsert_session(
+        self, session: Union[AgentSession, TeamSession, WorkflowSession]
+    ) -> Optional[Union[AgentSession, TeamSession, WorkflowSession]]:
         """Upsert a Session into the database."""
         try:
             if not self.db:
                 raise ValueError("Db not initialized")
             return await self.db.upsert_session(session=session)  # type: ignore
         except Exception as e:
+            import traceback
+
+            traceback.print_exc(limit=3)
             log_warning(f"Error upserting session into db: {e}")
             return None
 
@@ -6008,7 +6030,7 @@ class Agent:
     def get_session(
         self,
         session_id: Optional[str] = None,
-    ) -> Optional[AgentSession]:
+    ) -> Optional[Union[AgentSession, TeamSession, WorkflowSession]]:
         """Load an AgentSession from database or cache.
 
         Args:
@@ -6069,7 +6091,7 @@ class Agent:
     async def aget_session(
         self,
         session_id: Optional[str] = None,
-    ) -> Optional[AgentSession]:
+    ) -> Optional[Union[AgentSession, TeamSession, WorkflowSession]]:
         """Load an AgentSession from database or cache.
 
         Args:
@@ -6124,7 +6146,7 @@ class Agent:
         log_debug(f"AgentSession {session_id_to_load} not found in db")
         return None
 
-    def save_session(self, session: AgentSession) -> None:
+    def save_session(self, session: Union[AgentSession, TeamSession, WorkflowSession]) -> None:
         """
         Save the AgentSession to storage
         """
@@ -6146,7 +6168,7 @@ class Agent:
             self._upsert_session(session=session)
             log_debug(f"Created or updated AgentSession record: {session.session_id}")
 
-    async def asave_session(self, session: AgentSession) -> None:
+    async def asave_session(self, session: Union[AgentSession, TeamSession, WorkflowSession]) -> None:
         """
         Save the AgentSession to storage
         """
@@ -6222,12 +6244,16 @@ class Agent:
         if session is None:
             raise Exception("Session not found")
 
+        if not hasattr(session, "agent_data"):
+            raise Exception("Session is not an AgentSession")
+
         # -*- Rename Agent
         self.name = name
-        if session.agent_data is not None:
-            session.agent_data["name"] = name
+
+        if session.agent_data is not None:  # type: ignore
+            session.agent_data["name"] = name  # type: ignore
         else:
-            session.agent_data = {"name": name}
+            session.agent_data = {"name": name}  # type: ignore
 
         # -*- Save to storage
         if self._has_async_db():
@@ -6481,7 +6507,7 @@ class Agent:
             raise Exception("Session not found")
 
         # Only filter by agent_id if this is part of a team
-        return session.get_messages_from_last_n_runs(
+        return session.get_messages_from_last_n_runs(  # type: ignore
             agent_id=self.id if self.team_id is not None else None,
         )
 
@@ -6504,7 +6530,7 @@ class Agent:
             raise Exception("Session not found")
 
         # Only filter by agent_id if this is part of a team
-        return session.get_messages_from_last_n_runs(
+        return session.get_messages_from_last_n_runs(  # type: ignore
             agent_id=self.id if self.team_id is not None else None,
         )
 
@@ -6525,7 +6551,7 @@ class Agent:
         if session is None:
             raise Exception(f"Session {session_id} not found")
 
-        return session.get_session_summary()
+        return session.get_session_summary()  # type: ignore
 
     async def aget_session_summary(self, session_id: Optional[str] = None) -> Optional[SessionSummary]:
         """Get the session summary for the given session ID and user ID.
@@ -6544,7 +6570,7 @@ class Agent:
         if session is None:
             raise Exception(f"Session {session_id} not found")
 
-        return session.get_session_summary()
+        return session.get_session_summary()  # type: ignore
 
     def get_user_memories(self, user_id: Optional[str] = None) -> Optional[List[UserMemory]]:
         """Get the user memories for the given user ID.
@@ -7107,11 +7133,12 @@ class Agent:
         self,
         session: AgentSession,
         run_context: Optional[RunContext] = None,
-        session_state: Optional[Dict[str, Any]] = None,
         user_id: Optional[str] = None,
         tools: Optional[List[Union[Function, dict]]] = None,
-        dependencies: Optional[Dict[str, Any]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        add_session_state_to_context: Optional[bool] = None,
+        session_state: Optional[Dict[str, Any]] = None,  # Deprecated
+        dependencies: Optional[Dict[str, Any]] = None,  # Deprecated
+        metadata: Optional[Dict[str, Any]] = None,  # Deprecated
     ) -> Optional[Message]:
         """Return the system message for the Agent.
 
@@ -7445,7 +7472,7 @@ class Agent:
             system_message_content += f"{get_response_model_format_prompt(self.output_schema)}"
 
         # 3.3.15 Add the session state to the system message
-        if self.add_session_state_to_context and session_state is not None:
+        if add_session_state_to_context and session_state is not None:
             system_message_content += self._get_formatted_session_state_for_system_message(session_state)
 
         # Return the system message
@@ -7473,7 +7500,7 @@ class Agent:
         videos: Optional[Sequence[Video]] = None,
         files: Optional[Sequence[File]] = None,
         add_dependencies_to_context: Optional[bool] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        knowledge_filters: Optional[Union[Dict[str, Any], List[FilterExpr]]] = None,
         **kwargs: Any,
     ) -> Optional[Message]:
         """Return the user message for the Agent.
@@ -7488,7 +7515,6 @@ class Agent:
             dependencies = run_context.dependencies or dependencies
             metadata = run_context.metadata or metadata
             knowledge_filters = run_context.knowledge_filters or knowledge_filters
-
         # Get references from the knowledge base to use in the user message
         references = None
 
@@ -7849,7 +7875,7 @@ class Agent:
         images: Optional[Sequence[Image]] = None,
         videos: Optional[Sequence[Video]] = None,
         files: Optional[Sequence[File]] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        knowledge_filters: Optional[Union[Dict[str, Any], List[FilterExpr]]] = None,
         add_history_to_context: Optional[bool] = None,
         dependencies: Optional[Dict[str, Any]] = None,
         add_dependencies_to_context: Optional[bool] = None,
@@ -7900,6 +7926,7 @@ class Agent:
             tools=tools,
             dependencies=dependencies,
             metadata=metadata,
+            add_session_state_to_context=add_session_state_to_context,
         )
         if system_message is not None:
             run_messages.system_message = system_message
@@ -8143,7 +8170,7 @@ class Agent:
         self,
         query: str,
         num_documents: Optional[int] = None,
-        filters: Optional[Dict[str, Any]] = None,
+        filters: Optional[Union[Dict[str, Any], List[FilterExpr]]] = None,
         **kwargs,
     ) -> Optional[List[Union[Dict[str, Any], str]]]:
         """Get relevant docs from the knowledge base to answer a query.
@@ -8175,6 +8202,10 @@ class Agent:
                 filters = valid_filters
                 if not filters:
                     log_warning("No valid filters remain after validation. Search will proceed without filters.")
+
+            if invalid_keys == [] and valid_filters == {}:
+                log_warning("No valid filters provided. Search will proceed without filters.")
+                filters = None
 
         if self.knowledge_retriever is not None and callable(self.knowledge_retriever):
             from inspect import signature
@@ -8222,7 +8253,7 @@ class Agent:
         self,
         query: str,
         num_documents: Optional[int] = None,
-        filters: Optional[Dict[str, Any]] = None,
+        filters: Optional[Union[Dict[str, Any], List[FilterExpr]]] = None,
         **kwargs,
     ) -> Optional[List[Union[Dict[str, Any], str]]]:
         """Get relevant documents from knowledge base asynchronously."""
@@ -8244,6 +8275,10 @@ class Agent:
                 filters = valid_filters
                 if not filters:
                     log_warning("No valid filters remain after validation. Search will proceed without filters.")
+
+            if invalid_keys == [] and valid_filters == {}:
+                log_warning("No valid filters provided. Search will proceed without filters.")
+                filters = None
 
         if self.knowledge_retriever is not None and callable(self.knowledge_retriever):
             from inspect import isawaitable, signature
@@ -8468,38 +8503,6 @@ class Agent:
             metrics.time_to_first_token = current_run_metrics.time_to_first_token
 
         return metrics
-
-    ###########################################################################
-    # Handle images, videos and audio
-    ###########################################################################
-
-    def _add_image(self, image: Image, run_response: RunOutput) -> None:
-        """Add an image to both the agent's stateful storage and the current run response"""
-        # Add to run response
-        if run_response.images is None:
-            run_response.images = []
-        run_response.images.append(image)
-
-    def _add_video(self, video: Video, run_response: RunOutput) -> None:
-        """Add a video to both the agent's stateful storage and the current run response"""
-        # Add to run response
-        if run_response.videos is None:
-            run_response.videos = []
-        run_response.videos.append(video)
-
-    def _add_audio(self, audio: Audio, run_response: RunOutput) -> None:
-        """Add audio to both the agent's stateful storage and the current run response"""
-        # Add to run response
-        if run_response.audio is None:
-            run_response.audio = []
-        run_response.audio.append(audio)
-
-    def _add_file(self, file: File, run_response: RunOutput) -> None:
-        """Add file to both the agent's stateful storage and the current run response"""
-        # Add to run response
-        if run_response.files is None:
-            run_response.files = []
-        run_response.files.append(file)
 
     ###########################################################################
     # Reasoning
@@ -9598,7 +9601,7 @@ class Agent:
     def _get_search_knowledge_base_function(
         self,
         run_response: RunOutput,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        knowledge_filters: Optional[Union[Dict[str, Any], List[FilterExpr]]] = None,
         async_mode: bool = False,
     ) -> Function:
         """Factory function to create a search_knowledge_base function with filters."""
@@ -9674,7 +9677,7 @@ class Agent:
     def _search_knowledge_base_with_agentic_filters_function(
         self,
         run_response: RunOutput,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        knowledge_filters: Optional[Union[Dict[str, Any], List[FilterExpr]]] = None,
         async_mode: bool = False,
     ) -> Function:
         """Factory function to create a search_knowledge_base function with filters."""
@@ -9944,7 +9947,7 @@ class Agent:
         stream_events: Optional[bool] = None,
         stream_intermediate_steps: Optional[bool] = None,
         markdown: Optional[bool] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        knowledge_filters: Optional[Union[Dict[str, Any], List[FilterExpr]]] = None,
         add_history_to_context: Optional[bool] = None,
         add_dependencies_to_context: Optional[bool] = None,
         dependencies: Optional[Dict[str, Any]] = None,
@@ -10058,7 +10061,7 @@ class Agent:
         stream_events: Optional[bool] = None,
         stream_intermediate_steps: Optional[bool] = None,
         markdown: Optional[bool] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        knowledge_filters: Optional[Union[Dict[str, Any], List[FilterExpr]]] = None,
         add_history_to_context: Optional[bool] = None,
         dependencies: Optional[Dict[str, Any]] = None,
         add_dependencies_to_context: Optional[bool] = None,
@@ -10239,7 +10242,9 @@ class Agent:
 
         return None
 
-    def _get_effective_filters(self, knowledge_filters: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+    def _get_effective_filters(
+        self, knowledge_filters: Optional[Union[Dict[str, Any], List[FilterExpr]]] = None
+    ) -> Optional[Any]:
         """
         Determine which knowledge filters to use, with priority to run-level filters.
 
@@ -10258,8 +10263,13 @@ class Agent:
         # If run has filters, they override agent filters
         if knowledge_filters:
             if effective_filters:
-                # Merge filters, with run filters taking priority
-                effective_filters.update(knowledge_filters)
+                if isinstance(knowledge_filters, dict):
+                    if isinstance(effective_filters, dict):
+                        effective_filters.update(knowledge_filters)
+                    else:
+                        effective_filters = knowledge_filters
+                elif isinstance(knowledge_filters, list):
+                    effective_filters = [*effective_filters, *knowledge_filters]
             else:
                 effective_filters = knowledge_filters
 
@@ -10359,58 +10369,6 @@ class Agent:
 
         if not self.store_history_messages:
             scrub_history_messages_from_run_output(run_response)
-
-    def _validate_media_object_id(
-        self,
-        images: Optional[Sequence[Image]] = None,
-        videos: Optional[Sequence[Video]] = None,
-        audios: Optional[Sequence[Audio]] = None,
-        files: Optional[Sequence[File]] = None,
-    ) -> tuple:
-        """Convert raw Image/Video/Audio objects - now unified, so just return as-is."""
-        # With unified classes, no conversion needed - just ensure IDs are set
-        image_list = None
-        if images:
-            image_list = []
-            for img in images:
-                # Ensure ID is set (validation should handle this, but double-check)
-                if not img.id:
-                    from uuid import uuid4
-
-                    img.id = str(uuid4())
-                image_list.append(img)
-
-        video_list = None
-        if videos:
-            video_list = []
-            for vid in videos:
-                if not vid.id:
-                    from uuid import uuid4
-
-                    vid.id = str(uuid4())
-                video_list.append(vid)
-
-        audio_list = None
-        if audios:
-            audio_list = []
-            for aud in audios:
-                if not aud.id:
-                    from uuid import uuid4
-
-                    aud.id = str(uuid4())
-                audio_list.append(aud)
-
-        file_list = None
-        if files:
-            file_list = []
-            for file in files:
-                if not file.id:
-                    from uuid import uuid4
-
-                    file.id = str(uuid4())
-                file_list.append(file)
-
-        return image_list, video_list, audio_list, file_list
 
     def cli_app(
         self,
