@@ -6719,7 +6719,7 @@ class Agent:
                         log_debug(f"[Semantic Compression] Compressed message tokens: {len(compressed_tokens)}")
                         log_debug(f"[Semantic Compression] Token reduction: {token_reduction} ({reduction_percent:.1f}%)")
                     
-                    return compressed_message
+                    return compressed_message if compressed_message is not None else ""
                 except Exception as e:
                     log_warning(f"Semantic agent compression failed: {e}")
                     return message
@@ -6747,7 +6747,7 @@ class Agent:
                             Message(role="user", content=message),
                         ]
                     )
-                    compressed_message = response.content
+                    compressed_message = response.content if response.content is not None else ""
                     
                     if self.debug_mode:
                         log_debug("[Semantic Compression] Compression completed")
@@ -6757,7 +6757,7 @@ class Agent:
                         log_debug(f"[Semantic Compression] Compressed message tokens: {len(compressed_tokens)}")
                         log_debug(f"[Semantic Compression] Token reduction: {token_reduction} ({reduction_percent:.1f}%)")
                     
-                    return compressed_message
+                    return compressed_message if compressed_message is not None else ""
                 except Exception as e:
                     log_warning(f"Semantic model compression failed: {e}")
                     return message
