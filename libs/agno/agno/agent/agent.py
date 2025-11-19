@@ -6679,7 +6679,7 @@ class Agent:
                 if self.debug_mode:
                     log_debug(f"[Semantic Compression] Original message tokens: {token_count}")
                     log_debug(f"[Semantic Compression] Threshold: {self.semanticMaxTokens}")
-                    log_debug(f"[Semantic Compression] Compressing with semantic_agent...")
+                    log_debug("[Semantic Compression] Compressing with semantic_agent...")
                 
                 try:
                     # Run the semantic agent to compress the message
@@ -6703,7 +6703,7 @@ class Agent:
                 if self.debug_mode:
                     log_debug(f"[Semantic Compression] Original message tokens: {token_count}")
                     log_debug(f"[Semantic Compression] Threshold: {self.semanticMaxTokens}")
-                    log_debug(f"[Semantic Compression] Compressing with semantic_model...")
+                    log_debug("[Semantic Compression] Compressing with semantic_model...")
                 
                 try:
                     # Compression instructions
@@ -6724,7 +6724,7 @@ class Agent:
                     compressed_message = response.content
                     
                     if self.debug_mode:
-                        log_debug(f"[Semantic Compression] Compression completed")
+                        log_debug("[Semantic Compression] Compression completed")
                         compressed_tokens = encoder.encode(compressed_message)
                         token_reduction = token_count - len(compressed_tokens)
                         reduction_percent = (token_reduction / token_count * 100) if token_count > 0 else 0
