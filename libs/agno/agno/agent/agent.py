@@ -8449,7 +8449,8 @@ class Agent:
                     log_debug(f"Time to get references: {retrieval_timer.elapsed:.4f}s")
                 except Exception as e:
                     log_warning(f"Failed to get references: {e}")
-            
+
+            base_message_index = len(run_messages.messages)
             # Add the original messages first
             for _m in input:
                 if isinstance(_m, Message):
@@ -8468,26 +8469,28 @@ class Agent:
                         log_warning(f"Failed to validate message: {e}")
             
             # Add knowledge references to the last user message if found
-            if (
-                self.add_knowledge_to_context
-                and references is not None
-                and references.references is not None
-                and len(references.references) > 0
-                and last_user_message_index >= 0
-            ):
-                # Create knowledge references content
-                knowledge_content = "\n\nUse the following references from the knowledge base if it helps:\n"
-                knowledge_content += "<references>\n"
-                knowledge_content += self._convert_documents_to_string(references.references) + "\n"
-                knowledge_content += "</references>"
-                
-                # Update the last user message with knowledge references
-                last_message = run_messages.messages[last_user_message_index]
-                if isinstance(last_message, Message):
-                    if last_message.content:
-                        last_message.content += knowledge_content
-                    else:
-                        last_message.content = knowledge_content
+            if last_user_message_index >= 0:
+                last_message = run_messages.messages[base_message_index + last_user_message_index]
+
+                if (
+                    self.add_knowledge_to_context
+                    and references is not None
+                    and references.references is not None
+                    and len(references.references) > 0
+                ):
+                    knowledge_content = "\n\nUse the following references from the knowledge base if it helps:\n"
+                    knowledge_content += "<references>\n"
+                    knowledge_content += self._convert_documents_to_string(references.references) + "\n"
+                    knowledge_content += "</references>"
+
+                    if isinstance(last_message, Message):
+                        if last_message.content:
+                            last_message.content += knowledge_content
+                        else:
+                            last_message.content = knowledge_content
+
+                # Mark the last user message for downstream consumers (memory, summaries, etc.)
+                run_messages.user_message = last_message
 
         # Add user message to run_messages
         if user_message is not None:
