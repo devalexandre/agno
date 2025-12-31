@@ -1,149 +1,105 @@
 # DashScope Cookbook
 
-This cookbook demonstrates Qwen model integration with Agno framework. Supports cloud deployment via DashScope API and local deployment via LM Studio, Ollama, or vLLM.
+Qwen model integration with Agno framework. Supports cloud deployment via DashScope API and local deployment via LM Studio, Ollama, or vLLM.
 
-## Cloud Deployment (DashScope API)
+## Cloud Deployment
 
-### 1. Create and activate a virtual environment
+### Setup
 
 ```shell
+# Create virtual environment
 python3 -m venv ~/.venvs/aienv
 source ~/.venvs/aienv/bin/activate
-```
 
-### 2. Export your `DASHSCOPE_API_KEY` or `QWEN_API_KEY`
+# Install dependencies
+pip install -U openai ddgs agno
 
-Get your API key from: https://modelstudio.console.alibabacloud.com/?tab=model#/api-key
-
-```shell
+# Set API key (get from https://modelstudio.console.alibabacloud.com)
 export DASHSCOPE_API_KEY=***
 ```
 
-### 3. Install libraries
+### Examples
 
 ```shell
-pip install -U openai ddgs agno
-```
-
-### 4. Run basic Agent
-
-- Streaming on
-
-```shell
-python cookbook/models/dashscope/basic_stream.py
-```
-
-- Streaming off
-
-```shell
+# Basic
 python cookbook/models/dashscope/basic.py
-```
+python cookbook/models/dashscope/basic_stream.py
 
-### 5. Run async Agent
-
-- Async basic
-
-```shell
+# Async
 python cookbook/models/dashscope/async_basic.py
-```
-
-- Async streaming
-
-```shell
 python cookbook/models/dashscope/async_basic_stream.py
-```
 
-### 6. Run Agent with Tools
-
-- DuckDuckGo Search
-
-```shell
+# Tools
 python cookbook/models/dashscope/tool_use.py
-```
-
-- Async tool use
-
-```shell
 python cookbook/models/dashscope/async_tool_use.py
-```
 
-### 7. Run Agent that returns structured output
-
-```shell
+# Structured output
 python cookbook/models/dashscope/structured_output.py
-```
 
-### 8. Run Agent that analyzes images
-
-- Basic image analysis
-
-```shell
+# Image analysis
 python cookbook/models/dashscope/image_agent.py
-```
-
-- Image analysis with bytes
-
-```shell
 python cookbook/models/dashscope/image_agent_bytes.py
-```
-
-- Async image analysis
-
-```shell
 python cookbook/models/dashscope/async_image_agent.py
+
+# Multi-turn conversations
+python cookbook/models/dashscope/multi_turn_conversation.py
+
+# Code generation
+python cookbook/models/dashscope/code_generation.py
+
+# Long context
+python cookbook/models/dashscope/long_context.py
+
+# Batch processing
+python cookbook/models/dashscope/batch_processing.py
 ```
 
 ## Local Deployment
 
 ### Quick Start - LM Studio
 
-#### 1. Download LM Studio
+1. **Download LM Studio:** https://lmstudio.ai/
 
-https://lmstudio.ai/
+2. **Download Models** (search in LM Studio, download Q4_K_M):
+   - `qwen2.5-3b-instruct` - General purpose
+   - `Qwen2.5-Coder-3B-Instruct` - Code generation
+   - `Qwen3-VL-2B-Instruct` - Vision + reasoning (lighter)
 
-#### 2. Download Models
+3. **Start Server:** Local Server → Load model → Start (port 1234)
 
-**Basic (text + tools):**
-- Search: "qwen2.5-7b-instruct" → Download Q4_K_M
-
-**Reasoning:**
-- Search: "Qwen3-VL-4B-Thinking" → Download Q4_K_M
-
-**Embeddings:**
-- Search: "text-embedding-nomic-embed-text-v1.5"
-
-#### 3. Start Server
-
-Local Server → Load model → Start (port 1234)
-
-#### 4. Run Examples
+4. **Run Examples:**
 
 ```bash
-python cookbook/models/dashscope/qwen_local.py                  # Basic usage
+# Basic
+python cookbook/models/dashscope/qwen_local.py
+
+# Advanced
 python cookbook/models/dashscope/qwen_parallel_tools.py          # Parallel function calls
-python cookbook/models/dashscope/qwen_reasoning_content.py       # Reasoning (thinking process)
-python cookbook/models/dashscope/knowledge_tools.py              # Knowledge with local embeddings
+python cookbook/models/dashscope/qwen_reasoning_content.py       # Reasoning process
+python cookbook/models/dashscope/multi_turn_conversation.py      # Conversations with memory
+python cookbook/models/dashscope/code_generation.py              # Code generation
+python cookbook/models/dashscope/long_context.py                 # Long context (32K+)
+python cookbook/models/dashscope/batch_processing.py             # Batch processing
+python cookbook/models/dashscope/image_agent.py                  # Image analysis
 ```
 
-### Model Comparison
-
-| Feature | qwen2.5-7b | Qwen3-VL-4B-Thinking |
-|---------|------------|----------------------|
-| Size | 7B | 4B |
-| Reasoning | No | Yes |
-| Visual | No | Yes |
-| Tools | Yes | Yes |
-| Speed | Medium | Fast |
-
-### Switch Models
+### Model Configuration
 
 ```python
-MODEL_ID = "qwen2.5-7b-instruct"              # Standard
-MODEL_ID = "Qwen/Qwen3-VL-4B-Thinking-GGUF"   # Reasoning (lighter)
-MODEL_ID = "Qwen/Qwen3-VL-8B-Thinking-GGUF"   # Reasoning (better)
+# General purpose
+MODEL_ID = "qwen2.5-3b-instruct"
+BASE_URL = "http://localhost:1234/v1"
+
+# Code generation
+MODEL_ID = "qwen2.5-coder-3b-instruct"
+BASE_URL = "http://localhost:1234/v1"
+
+# Vision + reasoning
+MODEL_ID = "qwen3-vl-2b-instruct"
+BASE_URL = "http://localhost:1234/v1"
 ```
 
-### Switch Providers
+### Provider Configuration
 
 **LM Studio:**
 ```python
@@ -152,24 +108,63 @@ BASE_URL = "http://localhost:1234/v1"
 
 **Ollama:**
 ```python
-MODEL_ID = "qwen2.5:7b"
+MODEL_ID = "qwen2.5:3b"
 BASE_URL = "http://localhost:11434/v1"
 ```
 
 **vLLM:**
 ```python
-MODEL_ID = "Qwen/Qwen2.5-7B-Instruct"
+MODEL_ID = "Qwen/Qwen2.5-3B-Instruct"
 BASE_URL = "http://localhost:8000/v1"
 ```
 
-### Reasoning Models
+## Model Comparison
 
-**Text reasoning:**
-- `qwq:32b` (Ollama)
-- `Qwen/QwQ-32B-Preview` (HuggingFace)
+| Model | Size | Best For | Features |
+|-------|------|----------|----------|
+| qwen2.5-3b-instruct | 3B | General tasks | Fast, efficient, tool calling |
+| qwen2.5-coder-3b-instruct | 3B | Code generation | Optimized for programming tasks |
+| qwen3-vl-2b-instruct | 2B | Vision + reasoning | Image analysis, lightweight |
 
-**Visual reasoning:**
-- `Qwen/Qwen3-VL-4B-Thinking-GGUF` (4B - lighter, faster)
-- `Qwen/Qwen3-VL-8B-Thinking-GGUF` (8B - better quality)
-- `Qwen/QVQ-72B` (72B - best, heavy)
+## Features
 
+| Feature | Cloud | Local | Notes |
+|---------|-------|-------|-------|
+| Text generation | ✓ | ✓ | Streaming supported |
+| Tool calling | ✓ | ✓ | Parallel execution |
+| Image analysis | ✓ | ✓ | Base64 required for local |
+| Structured output | ✓ | ✓ | JSON mode |
+| Multi-turn conversations | ✓ | ✓ | Memory management |
+| Code generation | ✓ | ✓ | Specialized coder models |
+| Long context | ✓ | ✓ | Up to 32K tokens |
+| Batch processing | ✓ | ✓ | Async supported |
+| Reasoning | ✓ | ✓ | Thinking process visible |
+
+## Image Analysis
+
+**Cloud (DashScope API):**
+- Supports direct image URLs
+- More efficient (~85 tokens)
+
+**Local (LM Studio/vLLM/Ollama):**
+- Requires base64-encoded images
+- Uses more tokens (~750-1500 depending on image size)
+- Automatic fallback in `image_agent.py`
+
+```python
+# Automatic URL → base64 fallback
+agent.print_response(
+    "Analyze this image",
+    images=[Image(url="https://example.com/image.jpg")],
+)
+```
+
+## Cloud Models
+
+**Qwen-Plus:** General purpose, balanced performance
+**Qwen-Turbo:** Faster, lower cost
+**Qwen-Max:** Highest quality
+**Qwen-Coder-Plus:** Code generation optimized
+**Qwen-Long:** Up to 1M token context
+**Qwen-VL-Plus:** Vision + language
+**QwQ-32B-Preview:** Advanced reasoning
