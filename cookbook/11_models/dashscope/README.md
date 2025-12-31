@@ -1,5 +1,9 @@
 # DashScope Cookbook
 
+This cookbook demonstrates Qwen model integration with Agno framework. Supports cloud deployment via DashScope API and local deployment via LM Studio, Ollama, or vLLM.
+
+## Cloud Deployment (DashScope API)
+
 ### 1. Create and activate a virtual environment
 
 ```shell
@@ -89,5 +93,83 @@ python cookbook/models/dashscope/image_agent_bytes.py
 python cookbook/models/dashscope/async_image_agent.py
 ```
 
-For more information about Qwen models and capabilities, visit:
-- [Model Studio Console](https://modelstudio.console.alibabacloud.com/)
+## Local Deployment
+
+### Quick Start - LM Studio
+
+#### 1. Download LM Studio
+
+https://lmstudio.ai/
+
+#### 2. Download Models
+
+**Basic (text + tools):**
+- Search: "qwen2.5-7b-instruct" → Download Q4_K_M
+
+**Reasoning:**
+- Search: "Qwen3-VL-4B-Thinking" → Download Q4_K_M
+
+**Embeddings:**
+- Search: "text-embedding-nomic-embed-text-v1.5"
+
+#### 3. Start Server
+
+Local Server → Load model → Start (port 1234)
+
+#### 4. Run Examples
+
+```bash
+python cookbook/models/dashscope/qwen_local.py                  # Basic usage
+python cookbook/models/dashscope/qwen_parallel_tools.py          # Parallel function calls
+python cookbook/models/dashscope/qwen_reasoning_content.py       # Reasoning (thinking process)
+python cookbook/models/dashscope/knowledge_tools.py              # Knowledge with local embeddings
+```
+
+### Model Comparison
+
+| Feature | qwen2.5-7b | Qwen3-VL-4B-Thinking |
+|---------|------------|----------------------|
+| Size | 7B | 4B |
+| Reasoning | No | Yes |
+| Visual | No | Yes |
+| Tools | Yes | Yes |
+| Speed | Medium | Fast |
+
+### Switch Models
+
+```python
+MODEL_ID = "qwen2.5-7b-instruct"              # Standard
+MODEL_ID = "Qwen/Qwen3-VL-4B-Thinking-GGUF"   # Reasoning (lighter)
+MODEL_ID = "Qwen/Qwen3-VL-8B-Thinking-GGUF"   # Reasoning (better)
+```
+
+### Switch Providers
+
+**LM Studio:**
+```python
+BASE_URL = "http://localhost:1234/v1"
+```
+
+**Ollama:**
+```python
+MODEL_ID = "qwen2.5:7b"
+BASE_URL = "http://localhost:11434/v1"
+```
+
+**vLLM:**
+```python
+MODEL_ID = "Qwen/Qwen2.5-7B-Instruct"
+BASE_URL = "http://localhost:8000/v1"
+```
+
+### Reasoning Models
+
+**Text reasoning:**
+- `qwq:32b` (Ollama)
+- `Qwen/QwQ-32B-Preview` (HuggingFace)
+
+**Visual reasoning:**
+- `Qwen/Qwen3-VL-4B-Thinking-GGUF` (4B - lighter, faster)
+- `Qwen/Qwen3-VL-8B-Thinking-GGUF` (8B - better quality)
+- `Qwen/QVQ-72B` (72B - best, heavy)
+
