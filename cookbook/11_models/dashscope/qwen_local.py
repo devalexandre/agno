@@ -5,7 +5,6 @@ from agno.models.dashscope import DashScope
 from agno.tools.duckduckgo import DuckDuckGoTools
 from agno.tools.yfinance import YFinanceTools
 
-
 MODEL_ID = "qwen2.5-3b-instruct"
 BASE_URL = "http://localhost:1234/v1"
 

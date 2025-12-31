@@ -3,7 +3,6 @@
 from agno.agent import Agent
 from agno.models.dashscope import DashScope
 
-
 # IMPORTANTE: Use o nome EXATO que aparece no LM Studio
 # Após carregar o modelo, vá em "Local Server" e veja o nome do modelo carregado
 MODEL_ID = "qwen/qwen3-4b-thinking-2507"  # Nome comum no LM Studio
@@ -27,7 +26,6 @@ def example_text_reasoning():
     )
 
 
-
 def example_logic_puzzle():
     agent = Agent(
         model=DashScope(
@@ -42,8 +40,6 @@ def example_logic_puzzle():
         "Solve: If 5 machines take 5 minutes to make 5 widgets, "
         "how long would it take 100 machines to make 100 widgets?"
     )
-
-
 
 
 def example_complex_reasoning():
@@ -62,8 +58,6 @@ def example_complex_reasoning():
         "You can flip switches, then go to the room once. "
         "How do you determine which switch controls which bulb?"
     )
-
-
 
 
 def example_thinking_budget():

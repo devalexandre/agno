@@ -3,7 +3,6 @@
 from agno.agent import Agent
 from agno.models.dashscope import DashScope
 
-
 # IMPORTANTE: Use o nome EXATO que aparece no LM Studio
 # Para código: "Qwen/Qwen2.5-Coder-3B-Instruct-GGUF" ou nome simplificado no LM Studio
 MODEL_ID = "qwen2.5-coder-3b-instruct"
@@ -40,9 +39,7 @@ def quicksort(arr):
     return quicksort(left) + middle + quicksort(right)
 """
 
-    agent.print_response(
-        f"Explain this code and add detailed docstrings:\n\n{code}"
-    )
+    agent.print_response(f"Explain this code and add detailed docstrings:\n\n{code}")
 
 
 def example_code_refactoring():
@@ -83,9 +80,7 @@ def calculate_average(numbers):
 result = calculate_average([])
 """
 
-    agent.print_response(
-        f"Find and fix bugs in this code:\n\n{buggy_code}"
-    )
+    agent.print_response(f"Find and fix bugs in this code:\n\n{buggy_code}")
 
 
 def example_code_completion():
@@ -137,9 +132,7 @@ def example_multi_language():
         markdown=True,
     )
 
-    agent.print_response(
-        "Write a function to reverse a linked list in JavaScript"
-    )
+    agent.print_response("Write a function to reverse a linked list in JavaScript")
 
 
 def example_algorithm_implementation():
@@ -161,9 +154,7 @@ def example_lru_cache():
         markdown=True,
     )
 
-    agent.print_response(
-        "Write a Python class for a LRU cache with O(1) operations"
-    )
+    agent.print_response("Write a Python class for a LRU cache with O(1) operations")
 
 
 def example_api_endpoint():
@@ -173,9 +164,7 @@ def example_api_endpoint():
         markdown=True,
     )
 
-    agent.print_response(
-        "Create a FastAPI endpoint for user authentication with JWT"
-    )
+    agent.print_response("Create a FastAPI endpoint for user authentication with JWT")
 
 
 if __name__ == "__main__":

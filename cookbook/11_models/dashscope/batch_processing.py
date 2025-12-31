@@ -1,10 +1,10 @@
 """Batch processing examples with Qwen models"""
 
-from agno.agent import Agent
-from agno.models.dashscope import DashScope
 import asyncio
 from typing import List
 
+from agno.agent import Agent
+from agno.models.dashscope import DashScope
 
 MODEL_ID = "qwen2.5-3b-instruct"
 BASE_URL = "http://localhost:1234/v1"
@@ -50,7 +50,7 @@ async def example_async_batch():
     ]
 
     print("\n=== Processing queries asynchronously ===")
-    tasks = [process_query(query, i+1) for i, query in enumerate(queries)]
+    tasks = [process_query(query, i + 1) for i, query in enumerate(queries)]
     results = await asyncio.gather(*tasks)
 
     for i, result in enumerate(results, 1):
@@ -156,7 +156,7 @@ async def example_concurrent_with_rate_limit():
     queries = [f"Explain concept {i}" for i in range(10)]
 
     print("\n=== Processing with rate limit (max 3 concurrent) ===")
-    tasks = [process_with_limit(query, i+1) for i, query in enumerate(queries)]
+    tasks = [process_with_limit(query, i + 1) for i, query in enumerate(queries)]
     results = await asyncio.gather(*tasks)
 
     print(f"\n--- Processed {len(results)} queries ---")

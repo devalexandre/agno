@@ -2,8 +2,8 @@
 
 import base64
 from pathlib import Path
-import requests
 
+import requests
 from agno.agent import Agent
 from agno.media import Image
 from agno.models.dashscope import DashScope
@@ -30,7 +30,9 @@ def download_image(url: str, save_path: Path) -> None:
 
 # You can use a local image file or download one
 image_path = Path(__file__).parent.joinpath("sample.jpg")
-image_url = "https://upload.wikimedia.org/wikipedia/commons/0/0c/GoldenGateBridge-001.jpg"
+image_url = (
+    "https://upload.wikimedia.org/wikipedia/commons/0/0c/GoldenGateBridge-001.jpg"
+)
 
 # Download image if it doesn't exist
 if not image_path.exists():

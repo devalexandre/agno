@@ -1,10 +1,9 @@
 """Multi-turn conversation example with memory and context management"""
 
 from agno.agent import Agent
-from agno.models.dashscope import DashScope
-from agno.memory import MemoryManager
 from agno.db.sqlite import SqliteDb
-
+from agno.memory import MemoryManager
+from agno.models.dashscope import DashScope
 
 MODEL_ID = "qwen2.5-3b-instruct"
 BASE_URL = "http://localhost:1234/v1"

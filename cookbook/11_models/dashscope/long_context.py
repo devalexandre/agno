@@ -3,7 +3,6 @@
 from agno.agent import Agent
 from agno.models.dashscope import DashScope
 
-
 MODEL_ID = "qwen/qwen3-4b-thinking-2507"
 BASE_URL = "http://localhost:1234/v1"
 
@@ -19,9 +18,12 @@ def example_long_document_analysis():
         markdown=True,
     )
 
-    long_text = """
+    long_text = (
+        """
     [This would contain a long document, research paper, or codebase analysis]
-    """ * 100  # Simulate long context
+    """
+        * 100
+    )  # Simulate long context
 
     agent.print_response(
         f"Analyze this document and provide a comprehensive summary:\n\n{long_text[:1000]}...[truncated for example]"

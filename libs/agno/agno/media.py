@@ -42,8 +42,9 @@ class Image(BaseModel):
 
             # If use_base64=True and URL is provided, convert to base64 data URI
             if use_base64 and url and not url.startswith("data:"):
-                import httpx
                 import base64
+
+                import httpx
 
                 try:
                     response = httpx.get(url, headers={"User-Agent": "Mozilla/5.0"})

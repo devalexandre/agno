@@ -25,10 +25,8 @@ agent.print_response(
     images=[
         Image(
             url="https://upload.wikimedia.org/wikipedia/commons/0/0c/GoldenGateBridge-001.jpg",
-            use_base64=True
+            use_base64=True,
         )
     ],
     stream=True,
 )
-
-

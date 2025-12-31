@@ -5,7 +5,6 @@ from agno.models.dashscope import DashScope
 from agno.tools.duckduckgo import DuckDuckGoTools
 from agno.tools.yfinance import YFinanceTools
 
-
 MODEL_ID = "qwen2.5-3b-instruct"
 BASE_URL = "http://localhost:1234/v1"
 EMBEDDER_MODEL_ID = "text-embedding-nomic-embed-text-v1.5"
@@ -75,7 +74,9 @@ def example_comparison_benchmark():
     sequential_agent.run(query)
     sequential_time = time.time() - start
 
-    print(f"Parallel: {parallel_time:.2f}s | Sequential: {sequential_time:.2f}s | Speedup: {sequential_time/parallel_time:.2f}x")
+    print(
+        f"Parallel: {parallel_time:.2f}s | Sequential: {sequential_time:.2f}s | Speedup: {sequential_time / parallel_time:.2f}x"
+    )
 
 
 def example_template_types():
@@ -107,10 +108,10 @@ def example_vllm_native_parsing():
 
 
 def example_local_embeddings_knowledge():
+    from agno.knowledge.chunking.fixed_size import FixedSizeChunking
     from agno.knowledge.embedder.openai import OpenAIEmbedder
     from agno.knowledge.knowledge import Knowledge
     from agno.knowledge.reader.website_reader import WebsiteReader
-    from agno.knowledge.chunking.fixed_size import FixedSizeChunking
     from agno.tools.knowledge import KnowledgeTools
     from agno.vectordb.lancedb import LanceDb, SearchType
 
