@@ -1,7 +1,6 @@
 """Batch processing examples with Qwen models"""
 
 import asyncio
-from typing import List
 
 from agno.agent import Agent
 from agno.models.dashscope import DashScope
